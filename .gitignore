@@ -2,4 +2,5 @@ Data.fs*
 .*.swp
 *pyc
 *pyo
+tutorial.egg-info
 
