@@ -1,10 +1,17 @@
 from persistent import Persistent
 from persistent.mapping import PersistentMapping
 
+from pyramid.security import Allow
+from pyramid.security import Everyone
+
 
 class Wiki(PersistentMapping):
     __name__ = None
     __parent__ = None
+    __acl__ = [
+        (Allow, Everyone, 'view'),
+        (Allow, 'group:editors', 'edit'),
+    ]
 
 
 class Page(Persistent):
@@ -22,3 +29,4 @@ def appmaker(zodb_root):
         import transaction
         transaction.commit()
     return zodb_root['app_root']
+

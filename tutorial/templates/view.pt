@@ -4,7 +4,7 @@
       xmlns:tal="http://xml.zope.org/namespaces/tal">
 <head>
   <title>${page.__name__} - Pyramid tutorial wiki (based on
-      TurboGears 20-Minute Wiki)</title>
+    TurboGears 20-Minute Wiki)</title>
   <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
   <meta name="keywords" content="python web application" />
   <meta name="description" content="pyramid web application" />
@@ -32,12 +32,16 @@
     <div id="middle">
       <div class="middle align-right">
         <div id="left" class="app-welcome align-left">
-          Viewing <b><span tal:replace="page.__name__">Page Name Goes
-          Here</span></b><br/>
+          Viewing <b><span tal:replace="page.__name__">Page Name
+            Goes Here</span></b><br/>
           You can return to the
           <a href="${request.application_url}">FrontPage</a>.<br/>
         </div>
-        <div id="right" class="app-welcome align-right"></div>
+        <div id="right" class="app-welcome align-right">
+          <span tal:condition="logged_in">
+            <a href="${request.application_url}/logout">Logout</a>
+          </span>
+        </div>
       </div>
     </div>
     <div id="bottom">
@@ -46,7 +50,9 @@
           Page text goes here.
         </div>
         <p>
-          <a tal:attributes="href edit_url" href=""> Edit this page </a>
+          <a tal:attributes="href edit_url" href="">
+            Edit this page
+          </a>
         </p>
       </div>
     </div>
@@ -57,4 +63,3 @@
   </div>
 </body>
 </html>
-
