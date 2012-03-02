@@ -11,6 +11,7 @@ requires = [
     'pyramid_zodbconn',
     'pyramid_tm',
     'pyramid_debugtoolbar',
+    'pyramid_jinja2',
     'ZODB3',
     'waitress',
     'docutils',

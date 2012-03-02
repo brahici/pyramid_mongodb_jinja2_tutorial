@@ -1,0 +1,24 @@
+{% extends "layout.jinja2" %}
+
+{% block title %}{{ page.__name__ }}{% endblock %}
+
+{% block left %}
+          Editing <b><span>{{ page.__name__ }}</span></b></b><br/>
+          You can return to the
+          <a href="{{ request.application_url }}">FrontPage</a>.<br/>
+{% endblock %}
+
+
+{% block right %}
+          {% if logged_in %}
+            <a href="{{ request.application_url }}/logout">Logout</a>
+          {% endif %}
+{% endblock %}
+
+{% block bottom %}
+        <form action="{{ save_url }}" method="post">
+          <textarea name="body" rows="10" cols="60">{{ page.data }}</textarea>
+          <br/>
+          <input type="submit" name="form.submitted" value="Save"/>
+        </form>
+{% endblock %}

@@ -18,7 +18,7 @@ wikiwords = re.compile(r"\b([A-Z]\w+[A-Z]+\w+)")
 def view_wiki(context, request):
     return HTTPFound(location=request.resource_url(context, 'FrontPage'))
 
-@view_config(context='.models.Page', renderer='templates/view.pt',
+@view_config(context='.models.Page', renderer='view.jinja2',
         permission='view')
 def view_page(context, request):
     wiki = context.__parent__
@@ -43,7 +43,7 @@ def view_page(context, request):
             logged_in=logged_in)
 
 @view_config(name='add_page', context='.models.Wiki',
-        renderer='templates/edit.pt', permission='edit')
+        renderer='edit.jinja2', permission='edit')
 def add_page(context, request):
     name = request.subpath[0]
     if 'form.submitted' in request.params:
@@ -63,7 +63,7 @@ def add_page(context, request):
     return dict(page=page, save_url=save_url, logged_in=logged_in)
 
 @view_config(name='edit_page', context='.models.Page',
-        renderer='templates/edit.pt', permission='edit')
+        renderer='edit.jinja2', permission='edit')
 def edit_page(context, request):
     if 'form.submitted' in request.params:
         context.data = request.params['body']
@@ -76,9 +76,9 @@ def edit_page(context, request):
             logged_in=logged_in)
 
 @view_config(context='.models.Wiki', name='login',
-        renderer='templates/login.pt')
+        renderer='login.jinja2')
 @view_config(context='pyramid.httpexceptions.HTTPForbidden',
-        renderer='templates/login.pt')
+        renderer='login.jinja2')
 def login(context, request):
     login_url = request.resource_url(request.context, 'login')
     referrer = request.url
