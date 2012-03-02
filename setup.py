@@ -14,6 +14,7 @@ requires = [
     'ZODB3',
     'waitress',
     'docutils',
+    'WebTest',
     ]
 
 setup(name='tutorial',
