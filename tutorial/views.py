@@ -2,7 +2,7 @@ import re
 from docutils.core import publish_parts
 
 from pyramid.httpexceptions import HTTPFound
-from pyramid.view import view_config
+from pyramid.view import view_config, forbidden_view_config
 from pyramid.security import (
         authenticated_userid,
         remember,
@@ -76,8 +76,7 @@ def edit_page(context, request):
 
 @view_config(context='.resources.Wiki', name='login',
         renderer='login.jinja2')
-@view_config(context='pyramid.httpexceptions.HTTPForbidden',
-        renderer='login.jinja2')
+@forbidden_view_config(renderer='login.jinja2')
 def login(context, request):
     login_url = request.resource_url(request.context, 'login')
     referrer = request.url
