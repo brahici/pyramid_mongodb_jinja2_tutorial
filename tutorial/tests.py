@@ -5,40 +5,33 @@ from pyramid import testing
 class PageModelTests(unittest.TestCase):
 
     def _getTargetClass(self):
-        from .models import Page
+        from .resources import Page
         return Page
 
-    def _makeOne(self, data=u'some data'):
-        return self._getTargetClass()(data=data)
+    def _makeOne(self, name=u'some name', data=u'some data'):
+        return self._getTargetClass()(name=name, data=data)
 
     def test_constructor(self):
         instance = self._makeOne()
+        self.assertEqual(instance.name, u'some name')
         self.assertEqual(instance.data, u'some data')
 
 class WikiModelTests(unittest.TestCase):
 
     def _getTargetClass(self):
-        from .models import Wiki
+        from .resources import Wiki
         return Wiki
 
-    def _makeOne(self):
-        return self._getTargetClass()()
+    def _makeOne(self, request):
+        return self._getTargetClass()(request)
 
     def test_it(self):
-        wiki = self._makeOne()
+        request = testing.DummyRequest(db=testing.DummyResource(
+                wiki=type('DWiki', (object,), {'find_one': lambda x,y:
+                        True})()))
+        wiki = self._makeOne(request)
         self.assertEqual(wiki.__parent__, None)
         self.assertEqual(wiki.__name__, None)
-
-class AppmakerTests(unittest.TestCase):
-    def _callFUT(self, zodb_root):
-        from .models import appmaker
-        return appmaker(zodb_root)
-
-    def test_it(self):
-        root = {}
-        self._callFUT(root)
-        self.assertEqual(root['app_root']['FrontPage'].data,
-                'Front page')
 
 class ViewWikiTests(unittest.TestCase):
     def test_it(self):
@@ -73,6 +66,40 @@ class ViewPageTests(unittest.TestCase):
         self.assertEqual(info['edit_url'],
                 'http://example.com/thepage/edit_page')
 
+class DummyResource_(dict):
+    __parent__ = None
+    __name__ = None
+    __acl__ = []
+    __resource_url__ = None
+
+    def __getattribute__(self, attr):
+        try:
+            val = dict.__getattribute__(self, attr)
+        except:
+            val = self[attr]
+        return val
+
+    def __init__(self, **kwargs):
+        self.update(kwargs)
+
+    def save(self, obj):
+        self.__parent__[obj.name] = obj
+        return 1
+
+    def commit(self):
+        self.__parent__[self.__name__] = self
+        return 1
+
+class DummyWiki(testing.DummyResource):
+    def __init__(self):
+        testing.DummyResource.__init__(self, _wiki=DummyResource_())
+        self._wiki.__parent__ = self._wiki
+
+    def __setitem__(self, item, value):
+        self._wiki[item] = value
+
+    def __getitem__(self, item):
+        return self._wiki[item]
 
 class AddPageTests(unittest.TestCase):
     def _callFUT(self, context, request):
@@ -90,7 +117,7 @@ class AddPageTests(unittest.TestCase):
                 request.resource_url(context, 'add_page', 'AnotherPage'))
 
     def test_it_submitted(self):
-        context = testing.DummyResource()
+        context = DummyWiki()
         request = testing.DummyRequest({'form.submitted':True,
                 'body':'Hello yo!'})
         request.subpath = ['AnotherPage']
@@ -114,7 +141,8 @@ class EditPageTests(unittest.TestCase):
                 request.resource_url(context, 'edit_page'))
 
     def test_it_submitted(self):
-        context = testing.DummyResource()
+        context = DummyResource_()
+        context.__parent__ = DummyWiki()
         request = testing.DummyRequest({'form.submitted':True,
                 'body':'Hello yo!'})
         response = self._callFUT(context, request)
@@ -131,27 +159,22 @@ class FunctionalTests(unittest.TestCase):
                    '&came_from=FrontPage&form.submitted=Login'
 
     def setUp(self):
-        import tempfile
-        import os.path
         from . import main
-        self.tmpdir = tempfile.mkdtemp()
 
-        dbpath = os.path.join( self.tmpdir, 'test.db')
-        uri = 'file://' + dbpath
         settings = {
-                'zodbconn.uri' : uri,
-                'pyramid.includes': ['pyramid_zodbconn', 'pyramid_tm'],
+                'db_uri': 'mongodb://localhost',
+                'db_name': 'tutorial_tests',
+                'pyramid.includes': ['pyramid_tm', ],
             }
 
         app = main({}, **settings)
-        self.db = app.registry.zodb_database
+        self.cnx = app.registry.settings['db_conn']
+        db = self.cnx[settings['db_name']]
         from webtest import TestApp
         self.testapp = TestApp(app)
 
     def tearDown(self):
-        import shutil
-        self.db.close()
-        shutil.rmtree( self.tmpdir )
+        self.cnx.drop_database('tutorial_tests')
 
     def test_root(self):
         res = self.testapp.get('/', status=302)
