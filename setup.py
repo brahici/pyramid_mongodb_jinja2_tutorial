@@ -7,7 +7,7 @@ README = open(os.path.join(here, 'README.txt')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 requires = [
-    'pyramid',
+    'pyramid>=1.3a9',
     'pyramid_tm',
     'pyramid_debugtoolbar',
     'pyramid_jinja2',
